@@ -1,0 +1,33 @@
+# Data (never commit; see README)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Tools
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Environment and secrets
+.env
+.envrc
+
+# Experiment tracking
+mlruns/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
