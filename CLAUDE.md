@@ -2,10 +2,13 @@
 
 Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Full plan: `docs/project_spec.md`. Read it before suggesting design changes.
 
-Status: planning. The Python project (uv, src layout, CI) is set up in milestone M0.
+Status: M0 (scaffolding) done. Next: M1 data audit.
 
 ## Commands
-- To be filled in after M0 (expected: `uv sync`, ruff, mypy, pytest, same as the cost-sensitive-targeting repo).
+- Install: `uv sync --all-groups`, then `uv run pre-commit install`
+- Lint and format: `uv run ruff check .` and `uv run ruff format --check .`
+- Types: `uv run mypy`
+- Tests: `uv run pytest`
 
 ## Workflow
 - Never push to `main`. One branch per task, then open a PR.
