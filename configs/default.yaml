@@ -1,3 +1,31 @@
 # Paths are relative to this file.
-# Seeds, vintage cutoffs and event definitions go here (filled in M1 and M2).
 seed: 42
+
+data:
+  raw_dir: ../data/raw
+  interim_dir: ../data/interim
+
+# Split by origination year. Train and validation only use months before the cutoff.
+split:
+  train_vintages: [2015, 2016]
+  validation_vintages: [2017]
+  test_vintages: [2019]
+  cutoff_period: 201901  # YYYYMM, first month of the test period
+
+# Event definitions. See docs/decisions.md and notebooks/01_data_audit.ipynb (rule B).
+events:
+  default:
+    min_delinquency_code: 3  # 3 = 90 to 119 days late
+    reo_code: RA  # lender took the property
+    credit_loss_zero_balance_codes: ["02", "03", "09"]
+    ignore_relief_months: true  # forbearance (F) or disaster relief (Y)
+  prepay_zero_balance_codes: ["01"]
+  censor_zero_balance_codes: ["15", "16", "96"]
+
+filters:
+  drop_harp: true
+
+# Sample whole loans, not rows.
+sample:
+  build_rate: 0.05
+  final_rate: 0.10
