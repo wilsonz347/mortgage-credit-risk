@@ -2,7 +2,7 @@
 
 Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Full plan: `docs/project_spec.md`. Read it before suggesting design changes.
 
-Status: M1 (data audit) done. Next: M2 loader, sampling and splits.
+Status: v0.1.0 done (data, baselines, rate spread, expected loss, README, model card).
 
 ## Commands
 - Install: `uv sync --all-groups`, then `uv run pre-commit install`
