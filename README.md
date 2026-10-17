@@ -62,7 +62,7 @@ Details are in the notebooks and in [docs/decisions.md](docs/decisions.md). Limi
 
 ## Changes from the original plan
 
-The [project spec](docs/project_spec.md) also planned a CatBoost model, a stress test and drift monitoring. They were dropped to keep the project focused: the main errors came from events the data cannot see (hurricanes, COVID, a housing boom), which a more complex model would not fix.
+The original plan also included a CatBoost model, a stress test and drift monitoring. They were dropped to keep the project focused: the main errors came from events the data cannot see (hurricanes, COVID, a housing boom), which a more complex model would not fix.
 
 ## Repository
 
@@ -83,7 +83,7 @@ notebooks/
     03_baselines            logistic vs Cox
     04_rate_spread_and_gap  the validation gap (hurricanes)
     05_expected_loss        dollars
-docs/                       decisions, model card, spec
+docs/                       decisions, model card
 tests/                      60 tests, including leakage checks on hand-built loans
 ```
 

@@ -1,6 +1,6 @@
 # mortgage-credit-risk
 
-Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Full plan: `docs/project_spec.md`. Read it before suggesting design changes.
+Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Design choices and their reasons are in `docs/decisions.md`. Read it before suggesting design changes.
 
 Status: v0.1.0 done (data, baselines, rate spread, expected loss, README, model card).
 
