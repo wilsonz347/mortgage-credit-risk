@@ -52,6 +52,9 @@ models:
     alpha: 0.0  # ridge penalty; 0 means none
     ties: breslow  # how to handle loans defaulting in the same month
 
+loss:
+  horizon_months: 36  # expected loss over the first 36 months of a loan
+
 evaluation:
   n_bins: 10  # risk bands for calibration tables
   ph_split_age: 18  # loan age that splits the proportional hazards check
