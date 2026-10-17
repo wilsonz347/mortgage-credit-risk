@@ -1,7 +1,6 @@
 """Build the modeling tables from the raw files.
 
-Run with ``python -m mortgage_credit_risk.pipeline --rate build`` (or
-``final``).
+Run with ``python -m mortgage_credit_risk.pipeline``.
 """
 
 import argparse
@@ -183,14 +182,12 @@ def main(argv: list[str] | None = None) -> None:
         Arguments. Defaults to ``sys.argv``.
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--rate", choices=["build", "final"], default="build")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     cfg = load_config(args.config)
-    rate = cfg.build_rate if args.rate == "build" else cfg.final_rate
-    for path in build_model_tables(cfg, rate):
+    for path in build_model_tables(cfg, cfg.sample_rate):
         print(path)
 
 

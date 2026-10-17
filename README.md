@@ -8,7 +8,7 @@ A lender needs to know which loans will default, and when, to set aside money fo
 
 ## Data
 
-- **Freddie Mac Single-Family Loan-Level Dataset:** loans made in 2015 to 2019, with monthly payment history to Mar 2026. A 5% random sample of loans (about 300,000 loans, 17 million loan-months).
+- **Freddie Mac Single-Family Loan-Level Dataset:** loans made in 2015 to 2019, with monthly payment history to Mar 2026. A 5% random sample of loans (about 300,000 loans and 17 million loan-months; 9 million loan-months remain after the cutoff and each loan's first event).
 - **FRED** (Federal Reserve Economic Data): market mortgage rates, unemployment, house prices.
 
 Data is not included. See [How to run](#how-to-run).
@@ -56,7 +56,7 @@ Training never sees anything after Jan 2019, so the test is like using the model
 2. **Survival models use the data better.** Cox learns from all 884 training defaults; the 12-month model only from 169. Cox finds clear DTI and LTV effects that the 12-month window hides.
 3. **The 2017 under-prediction was hurricanes.** Both models predicted about 30% too few defaults on 2017 loans. Almost all of it was Florida and Texas after Hurricanes Irma and Harvey. Every other state was predicted correctly.
 4. **Ranking dropped on 2019 loans because of COVID.** Who got into trouble in 2020 depended on jobs and industry, which loan data at origination cannot show.
-5. **Default counts were right, losses were not.** Over 36 months the model predicted 957 defaults and 898 happened. Losses were over-predicted by about 2x, because house prices rose about 30% in 2021 and 2022, so defaulted homes sold with little loss.
+5. **Default counts were right, losses were not.** Over 36 months the model predicted 957 defaults and 898 happened. Losses were over-predicted by about 2x, because house prices rose 17% in 2021 and 15% in 2022, so defaulted homes sold with little loss.
 
 Details are in the notebooks and in [docs/decisions.md](docs/decisions.md). Limits are in the [model card](docs/model_card.md).
 
@@ -110,7 +110,7 @@ tests/                      tests, including leakage checks on hand-built loans
 4. **Build the modeling tables** (about a minute):
 
    ```bash
-   uv run python -m mortgage_credit_risk.pipeline --rate build
+   uv run python -m mortgage_credit_risk.pipeline
    ```
 
 5. **Run the notebooks** in order, and the tests with `uv run pytest`.

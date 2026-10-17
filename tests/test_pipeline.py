@@ -56,9 +56,9 @@ def test_main_builds_tables(
     cfg: Config, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setattr("mortgage_credit_risk.pipeline.load_config", lambda _: cfg)
-    main(["--rate", "final"])
+    main([])
 
-    assert "model_loans_10pct.parquet" in capsys.readouterr().out
+    assert "model_loans_5pct.parquet" in capsys.readouterr().out
 
 
 def test_rate_spread_uses_market_rate_in_origination_month(cfg: Config) -> None:

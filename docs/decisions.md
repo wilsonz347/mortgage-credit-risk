@@ -4,6 +4,24 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-17: Final results stay at 5%
+
+**Decision:** Do not rerun at 10%. All results use the 5% sample. The first plan was 5% while building and 10% for final results. The 2026-10-15 entry and notebook 01 now say 5%.
+
+**Why:**
+
+- The findings are clear at 5%. Cox beats logistic in 99.8% of bootstrap resamples.
+- The main errors come from events the data cannot see (hurricanes, COVID, the housing boom). More loans would not fix them.
+
+**Changed:**
+
+- One sample rate in the config (`sample.rate`), read as `cfg.sample_rate`.
+- The pipeline has no `--rate` option now.
+
+**Cost:** wider intervals where defaults are few: the 12-month logistic (169 training defaults) and the loss rate (542).
+
+---
+
 ## 2026-10-17: Expected loss
 
 **Decision:** Keep it simple.
@@ -207,16 +225,15 @@ Short, dated entries, newest first. Record what was decided and why.
 
 **Decision:** Sample whole loans, not rows.
 
-- 5% while building.
-- 10% for final results.
+- 5% of loans, for all results (see 2026-10-17: Final results stay at 5%).
 
-At 10%, this leaves about:
+At 5%, the modeling tables have:
 
 | Split | Defaults |
 |---|---|
-| Train | 2,200 |
-| Validation | 510 |
-| Test | 3,100 |
+| Train | 884 |
+| Validation | 223 |
+| Test | 1,556 |
 
 ---
 

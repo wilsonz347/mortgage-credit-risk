@@ -1,7 +1,7 @@
 [project]
 name = "mortgage-credit-risk"
 version = "0.1.1"
-description = "Survival models for mortgage default and prepayment risk."
+description = "Survival models for mortgage default risk."
 readme = "README.md"
 license = "MIT"
 authors = [

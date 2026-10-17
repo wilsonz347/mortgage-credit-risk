@@ -1,6 +1,6 @@
 # mortgage-credit-risk
 
-Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Design choices and their reasons are in `docs/decisions.md`. Read it before suggesting design changes.
+Survival models for mortgage default risk (Freddie Mac Single-Family Loan-Level Dataset). Design choices and their reasons are in `docs/decisions.md`. Read it before suggesting design changes.
 
 Status: v0.1.1 done (data, baselines, rate spread, expected loss, README, model card).
 
@@ -9,7 +9,7 @@ Status: v0.1.1 done (data, baselines, rate spread, expected loss, README, model 
 - Lint and format: `uv run ruff check .` and `uv run ruff format --check .`
 - Types: `uv run mypy`
 - Tests: `uv run pytest`
-- Build the modeling tables: `uv run python -m mortgage_credit_risk.pipeline --rate build` (needs the raw data in `data/raw/` and `FRED_API_KEY` in `.env`)
+- Build the modeling tables: `uv run python -m mortgage_credit_risk.pipeline` (needs the raw data in `data/raw/` and `FRED_API_KEY` in `.env`)
 
 ## Workflow
 - Never push to `main`. One branch per task, then open a PR.
