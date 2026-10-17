@@ -7,6 +7,7 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from mortgage_credit_risk.config import Config, load_config
@@ -156,6 +157,27 @@ def raw_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def cfg(raw_dir: Path, tmp_path: Path) -> Config:
-    """Default config pointed at the made-up raw files."""
-    return replace(load_config(), raw_dir=raw_dir, processed_dir=tmp_path / "processed")
+def fred_dir(tmp_path: Path) -> Path:
+    """Cached FRED rates: long rate 3.5% (3.8% in Jan 2015), short rate 3.0%."""
+    folder = tmp_path / "fred"
+    folder.mkdir()
+    weeks = pd.date_range("2014-01-02", "2020-12-31", freq="7D")
+    long_rate = pd.Series(3.5, index=weeks)
+    long_rate[(weeks.year == 2015) & (weeks.month == 1)] = 3.8
+    for series_id, values in [
+        ("MORTGAGE30US", long_rate),
+        ("MORTGAGE15US", pd.Series(3.0, index=weeks)),
+    ]:
+        values.rename_axis("date").rename(series_id).to_csv(folder / f"{series_id}.csv")
+    return folder
+
+
+@pytest.fixture
+def cfg(raw_dir: Path, fred_dir: Path, tmp_path: Path) -> Config:
+    """Default config pointed at the made-up raw files and FRED cache."""
+    return replace(
+        load_config(),
+        raw_dir=raw_dir,
+        fred_dir=fred_dir,
+        processed_dir=tmp_path / "processed",
+    )

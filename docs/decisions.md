@@ -4,6 +4,40 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-17: Rate spread and the validation gap
+
+**Built:** FRED download and cache (`macro.py`). Two new loan columns:
+
+| Column | Meaning |
+|---|---|
+| `market_rate` | FRED 30-year (or 15-year, for terms of 180 months or less) mortgage rate in the origination month |
+| `rate_spread` | `orig_rate` minus `market_rate` |
+
+- Origination month = first payment month minus 2.
+- Known at origination, so no leakage. Mortgage rates are not revised.
+
+**Tested:** Does the rate spread fix the 30% under-prediction on validation? No (see `notebooks/04_rate_spread_and_gap.ipynb`).
+
+| Features | Cox C-index | Cox predicted / observed |
+|---|---|---|
+| `orig_rate` (M3) | 0.815 | 0.71 |
+| `rate_spread` | 0.812 | 0.61 |
+| `rate_spread` + `market_rate` | 0.816 | 0.68 |
+
+**Found the cause:** the 2017 hurricanes.
+
+- Florida (ratio 0.19) and Texas (0.53) hold 41% of validation's 12-month defaults. Every other state is 1.00.
+- Most of those loans were in disaster relief, then still 90+ days late after relief ended. Rule B counts those later months.
+- Unemployment and house prices improved in 2017 to 2018, so they cannot explain it.
+
+**Decision:** Keep it simple.
+
+- Keep rule B and the M3 features. Report the hurricane effect as a known shock.
+- No new default rule, no recalibration, no more economic data for now.
+- Keep `market_rate` and `rate_spread` in the tables for later.
+
+---
+
 ## 2026-10-17: M3 results and next step
 
 **Results** (5% sample, see `notebooks/03_baselines.ipynb`):

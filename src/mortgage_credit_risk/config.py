@@ -70,6 +70,28 @@ class Events:
 
 
 @dataclass(frozen=True)
+class Macro:
+    """Economic series from FRED and how they are joined to loans.
+
+    Attributes
+    ----------
+    rate_series_long : str
+        FRED ID of the market rate for long loans.
+    rate_series_short : str
+        FRED ID of the market rate for short loans.
+    short_term_max_months : int
+        Loans with a term this long or shorter use the short-loan rate.
+    origination_lag_months : int
+        Months between origination and the first payment.
+    """
+
+    rate_series_long: str
+    rate_series_short: str
+    short_term_max_months: int
+    origination_lag_months: int
+
+
+@dataclass(frozen=True)
 class Config:
     """Project settings.
 
@@ -79,12 +101,16 @@ class Config:
         Random seed, also used to pick the loan sample.
     raw_dir : Path
         Folder with the Freddie Mac files and the ``header`` folder.
+    fred_dir : Path
+        Folder for cached FRED series.
     interim_dir : Path
         Folder for caches.
     processed_dir : Path
         Folder for sampled, typed Parquet files.
     split : Split
         Vintage split and cutoff.
+    macro : Macro
+        FRED series settings.
     events : Events
         Event codes.
     drop_harp : bool
@@ -114,9 +140,11 @@ class Config:
 
     seed: int
     raw_dir: Path
+    fred_dir: Path
     interim_dir: Path
     processed_dir: Path
     split: Split
+    macro: Macro
     events: Events
     drop_harp: bool
     build_rate: float
@@ -156,6 +184,7 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
     cfg = Config(
         seed=int(raw["seed"]),
         raw_dir=(path.parent / data["raw_dir"]).resolve(),
+        fred_dir=(path.parent / data["fred_dir"]).resolve(),
         interim_dir=(path.parent / data["interim_dir"]).resolve(),
         processed_dir=(path.parent / data["processed_dir"]).resolve(),
         split=Split(
@@ -163,6 +192,12 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
             validation_vintages=tuple(int(v) for v in split["validation_vintages"]),
             test_vintages=tuple(int(v) for v in split["test_vintages"]),
             cutoff_period=int(split["cutoff_period"]),
+        ),
+        macro=Macro(
+            rate_series_long=str(raw["macro"]["rate_series_long"]),
+            rate_series_short=str(raw["macro"]["rate_series_short"]),
+            short_term_max_months=int(raw["macro"]["short_term_max_months"]),
+            origination_lag_months=int(raw["macro"]["origination_lag_months"]),
         ),
         events=Events(
             min_delinquency_code=int(events["default"]["min_delinquency_code"]),

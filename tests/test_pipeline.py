@@ -59,3 +59,13 @@ def test_main_builds_tables(
     main(["--rate", "final"])
 
     assert "model_loans_10pct.parquet" in capsys.readouterr().out
+
+
+def test_rate_spread_uses_market_rate_in_origination_month(cfg: Config) -> None:
+    _, loan_path = build_model_tables(cfg, rate=1.0)
+    loans = pd.read_parquet(loan_path).set_index("loan_id")
+
+    # Fixture loans pay first in Mar 2015, so they originated in Jan 2015,
+    # when the fake 30-year rate was 3.8%. Their rate is 4.0%.
+    assert loans.loc["F15Q10000001", "market_rate"] == pytest.approx(3.8)
+    assert loans.loc["F15Q10000001", "rate_spread"] == pytest.approx(0.2)
