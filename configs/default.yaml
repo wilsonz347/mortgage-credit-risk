@@ -30,3 +30,20 @@ filters:
 sample:
   build_rate: 0.05
   final_rate: 0.10
+
+models:
+  logistic_horizon_months: 12  # default by this loan age, in months
+  numeric_features: [credit_score, ltv, dti, orig_rate]
+  categorical_features: [purpose, occupancy]
+  logistic:  # keyword arguments for sklearn LogisticRegression
+    C: 1.0  # inverse penalty strength; larger means less shrinking
+    solver: newton-cholesky  # lbfgs stops too early with rare defaults
+    max_iter: 1000
+  cox:  # keyword arguments for sksurv CoxPHSurvivalAnalysis
+    alpha: 0.0  # ridge penalty; 0 means none
+    ties: breslow  # how to handle loans defaulting in the same month
+
+evaluation:
+  n_bins: 10  # risk bands for calibration tables
+  ph_split_age: 18  # loan age that splits the proportional hazards check
+  n_bootstrap: 1000  # resamples for bootstrap intervals

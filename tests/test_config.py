@@ -17,6 +17,12 @@ def test_default_config_loads() -> None:
     assert cfg.events.min_delinquency_code == 3
     assert "01" in cfg.events.prepay_codes
     assert 0 < cfg.build_rate <= cfg.final_rate <= 1
+    assert cfg.logistic_horizon_months == 12
+    assert "credit_score" in cfg.numeric_features
+    assert cfg.logistic_params["C"] == 1.0
+    assert cfg.n_bins == 10
+    assert cfg.ph_split_age == 18
+    assert cfg.n_bootstrap == 1000
 
 
 def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") -> Path:
@@ -40,6 +46,11 @@ def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") 
         "  censor_zero_balance_codes: ['15']\n"
         "filters: {drop_harp: true}\n"
         f"sample: {{build_rate: {rate}, final_rate: 0.2}}\n"
+        "models:\n"
+        "  logistic_horizon_months: 12\n"
+        "  numeric_features: [ltv]\n"
+        "  categorical_features: [purpose]\n"
+        "evaluation: {n_bins: 5, ph_split_age: 12, n_bootstrap: 10}\n"
     )
     return path
 

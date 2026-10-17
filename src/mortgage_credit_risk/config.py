@@ -1,7 +1,8 @@
 """Load project settings from a YAML config file."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -92,6 +93,23 @@ class Config:
         Share of loans to sample while building.
     final_rate : float
         Share of loans to sample for final results.
+    logistic_horizon_months : int
+        Loan age by which a default counts for the logistic baseline.
+    numeric_features : tuple of str
+        Numeric model inputs.
+    categorical_features : tuple of str
+        Categorical model inputs.
+    logistic_params : dict
+        Keyword arguments for ``LogisticRegression``.
+    n_bins : int
+        Number of risk bands in calibration tables.
+    cox_params : dict
+        Keyword arguments for ``CoxPHSurvivalAnalysis``.
+    ph_split_age : int
+        Loan age that splits the early and late windows in the proportional
+        hazards check.
+    n_bootstrap : int
+        Number of resamples for bootstrap intervals.
     """
 
     seed: int
@@ -103,6 +121,14 @@ class Config:
     drop_harp: bool
     build_rate: float
     final_rate: float
+    logistic_horizon_months: int
+    numeric_features: tuple[str, ...]
+    categorical_features: tuple[str, ...]
+    n_bins: int = 10
+    ph_split_age: int = 18
+    n_bootstrap: int = 1000
+    logistic_params: dict[str, Any] = field(default_factory=dict)
+    cox_params: dict[str, Any] = field(default_factory=dict)
 
 
 def load_config(path: Path = DEFAULT_CONFIG) -> Config:
@@ -151,6 +177,14 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
         drop_harp=bool(raw["filters"]["drop_harp"]),
         build_rate=float(raw["sample"]["build_rate"]),
         final_rate=float(raw["sample"]["final_rate"]),
+        logistic_horizon_months=int(raw["models"]["logistic_horizon_months"]),
+        numeric_features=tuple(raw["models"]["numeric_features"]),
+        categorical_features=tuple(raw["models"]["categorical_features"]),
+        logistic_params=dict(raw["models"].get("logistic") or {}),
+        n_bins=int(raw["evaluation"]["n_bins"]),
+        ph_split_age=int(raw["evaluation"]["ph_split_age"]),
+        n_bootstrap=int(raw["evaluation"]["n_bootstrap"]),
+        cox_params=dict(raw["models"].get("cox") or {}),
     )
 
     groups = [

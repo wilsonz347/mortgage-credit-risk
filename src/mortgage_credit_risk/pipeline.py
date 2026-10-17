@@ -46,9 +46,10 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
     ``event`` is 0 (none), 1 (default) or 2 (prepay) for that month. This is
     the input for discrete-time hazard models.
 
-    The loan table has one row per loan: ``months`` observed, the final
-    ``event`` (0 means censored) and ``event_period``. This is the input for
-    Cox models and fixed-horizon baselines.
+    The loan table has one row per loan: ``months`` observed, ``last_age``
+    (loan age in the last observed month, which is the event month if there
+    is one), the final ``event`` (0 means censored) and ``event_period``.
+    This is the input for Cox models and fixed-horizon baselines.
 
     Both tables carry ``split``, ``vintage`` and the origination features in
     ``FEATURES``. The sample is built first if it does not exist yet.
@@ -111,13 +112,16 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
     logger.info("Writing %s", loan_table_path)
     con.execute(f"""
         COPY (
-            SELECT m.split, m.loan_id, m.vintage, m.months, m.event, m.event_period,
+            SELECT m.split, m.loan_id, m.vintage, m.months, m.last_age,
+                m.event, m.event_period,
                 {features}
             FROM (
                 SELECT loan_id,
                     any_value(split) AS split,
                     any_value(vintage) AS vintage,
-                    count(*) AS months, max(event) AS event,
+                    count(*) AS months,
+                    max(loan_age) AS last_age,
+                    max(event) AS event,
                     max(period) FILTER (WHERE event > 0) AS event_period
                 FROM labeled GROUP BY loan_id
             ) m JOIN '{loans_path}' l USING (loan_id)
