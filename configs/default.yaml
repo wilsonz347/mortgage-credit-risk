@@ -4,6 +4,7 @@ seed: 42
 data:
   raw_dir: ../data/raw
   interim_dir: ../data/interim
+  processed_dir: ../data/processed
 
 # Split by origination year. Train and validation only use months before the cutoff.
 split:
