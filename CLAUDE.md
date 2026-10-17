@@ -2,7 +2,7 @@
 
 Survival models for mortgage default and prepayment risk (Freddie Mac Single-Family Loan-Level Dataset). Full plan: `docs/project_spec.md`. Read it before suggesting design changes.
 
-Status: M0 (scaffolding) done. Next: M1 data audit.
+Status: M1 (data audit) done. Next: M2 loader, sampling and splits.
 
 ## Commands
 - Install: `uv sync --all-groups`, then `uv run pre-commit install`
@@ -15,7 +15,8 @@ Status: M0 (scaffolding) done. Next: M1 data audit.
 - Log design choices as short dated entries in `docs/decisions.md`.
 
 ## Who writes what
-- I write the core logic (event definitions, splits, hazard setup, metrics). Do not write or edit package code in `src/` unless I ask.
+- Claude writes the data side: loading, cleaning, event definitions, splits, modeling tables, data analysis notebooks.
+- I write the modeling side: hazard setup, models, metrics, evaluation. Do not write or edit modeling code unless I ask.
 - Welcome without asking: reviewing my diffs, suggesting tests, fixing CI, docs.
 - Explain briefly. Do not paste code unless I ask for it.
 

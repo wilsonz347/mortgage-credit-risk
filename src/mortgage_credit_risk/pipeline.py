@@ -1,0 +1,152 @@
+"""Build the modeling tables from the raw files.
+
+Run with ``python -m mortgage_credit_risk.pipeline --rate build`` (or
+``final``).
+"""
+
+import argparse
+import logging
+from pathlib import Path
+
+from mortgage_credit_risk.config import DEFAULT_CONFIG, Config, load_config
+from mortgage_credit_risk.data import build_sample, connect
+from mortgage_credit_risk.events import label_sql
+from mortgage_credit_risk.splits import TEST, split_sql
+
+logger = logging.getLogger(__name__)
+
+# Origination fields known on day one, carried onto every loan-month row.
+FEATURES = [
+    "credit_score",
+    "ltv",
+    "cltv",
+    "dti",
+    "orig_rate",
+    "orig_upb",
+    "orig_term",
+    "mi_pct",
+    "units",
+    "n_borrowers",
+    "first_time_buyer",
+    "occupancy",
+    "purpose",
+    "channel",
+    "property_type",
+    "state",
+    "super_conforming",
+    "program",
+]
+
+
+def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
+    """Write the loan-month table and the loan table used for modeling.
+
+    The loan-month table has one row per loan per month, up to the loan's
+    first event, the cutoff (train and validation) or the end of the data.
+    ``event`` is 0 (none), 1 (default) or 2 (prepay) for that month. This is
+    the input for discrete-time hazard models.
+
+    The loan table has one row per loan: ``months`` observed, the final
+    ``event`` (0 means censored) and ``event_period``. This is the input for
+    Cox models and fixed-horizon baselines.
+
+    Both tables carry ``split``, ``vintage`` and the origination features in
+    ``FEATURES``. The sample is built first if it does not exist yet.
+
+    Parameters
+    ----------
+    cfg : Config
+        Project settings.
+    rate : float
+        Share of loans to use, in (0, 1].
+
+    Returns
+    -------
+    tuple of Path
+        Paths of the loan-month table and the loan table.
+
+    Raises
+    ------
+    ValueError
+        If a test row falls before the cutoff.
+    """
+    tag = f"{rate * 100:g}pct"
+    loans_path = cfg.processed_dir / f"loans_{tag}.parquet"
+    months_path = cfg.processed_dir / f"loan_months_{tag}.parquet"
+    if not (loans_path.exists() and months_path.exists()):
+        loans_path, months_path = build_sample(cfg, rate)
+
+    hazard_path = cfg.processed_dir / f"model_loan_months_{tag}.parquet"
+    loan_table_path = cfg.processed_dir / f"model_loans_{tag}.parquet"
+    features = ", ".join(f"l.{f}" for f in FEATURES)
+
+    con = connect()
+    con.execute(f"""
+        CREATE VIEW months AS
+        SELECT m.*, l.vintage
+        FROM '{months_path}' m JOIN '{loans_path}' l USING (loan_id)
+    """)
+    con.execute(f"""
+        CREATE VIEW labeled AS
+        {split_sql(f"({label_sql('months', cfg.events)})", cfg.split)}
+    """)
+
+    early = con.execute(f"""
+        SELECT count(*) FROM labeled
+        WHERE split = '{TEST}' AND period < {cfg.split.cutoff_period}
+    """).fetchone()
+    if early is not None and early[0] > 0:
+        raise ValueError(f"{early[0]} test rows fall before the cutoff")
+
+    logger.info("Writing %s", hazard_path)
+    con.execute(f"""
+        COPY (
+            SELECT m.split, m.loan_id, m.vintage, m.period, m.loan_age, m.event,
+                {features}
+            FROM labeled m JOIN '{loans_path}' l USING (loan_id)
+            ORDER BY m.loan_id, m.period
+        ) TO '{hazard_path}' (FORMAT parquet)
+    """)
+
+    logger.info("Writing %s", loan_table_path)
+    con.execute(f"""
+        COPY (
+            SELECT m.split, m.loan_id, m.vintage, m.months, m.event, m.event_period,
+                {features}
+            FROM (
+                SELECT loan_id,
+                    any_value(split) AS split,
+                    any_value(vintage) AS vintage,
+                    count(*) AS months, max(event) AS event,
+                    max(period) FILTER (WHERE event > 0) AS event_period
+                FROM labeled GROUP BY loan_id
+            ) m JOIN '{loans_path}' l USING (loan_id)
+            ORDER BY m.loan_id
+        ) TO '{loan_table_path}' (FORMAT parquet)
+    """)
+    con.close()
+    return hazard_path, loan_table_path
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Build the modeling tables from the command line.
+
+    Parameters
+    ----------
+    argv : list of str, optional
+        Arguments. Defaults to ``sys.argv``.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--rate", choices=["build", "final"], default="build")
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    args = parser.parse_args(argv)
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    cfg = load_config(args.config)
+    rate = cfg.build_rate if args.rate == "build" else cfg.final_rate
+    for path in build_model_tables(cfg, rate):
+        print(path)
+
+
+if __name__ == "__main__":
+    main()

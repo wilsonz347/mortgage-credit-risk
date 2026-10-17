@@ -4,6 +4,31 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-16: Modeling tables
+
+**Decision:** Build two tables from each sample, both in `data/processed/`.
+
+| Table | One row per | Used for |
+|---|---|---|
+| `model_loan_months_<rate>.parquet` | Loan per month | Discrete-time hazard models |
+| `model_loans_<rate>.parquet` | Loan | Cox model, fixed-horizon baselines |
+
+**Event timing:**
+
+- `event` is 0 (none), 1 (default) or 2 (prepay) for that month.
+- A loan's rows stop at its first event.
+- If a default and a prepayment happen in the same month, default wins.
+- Events are labeled first, then the cutoff is applied. An event after the cutoff is removed with its row, so the loan counts as censored.
+
+**Features:**
+
+- Origination fields only for now (`FEATURES` in `pipeline.py`).
+- Time-varying features (market rate, ELTV) are left for later. They must use only data known at each month.
+
+**Who writes what:** From Oct 16, 2026, Claude writes the data side and the user writes the modeling side. See `CLAUDE.md`.
+
+---
+
 ## 2026-10-15: Default rule, HARP loans and sample rate
 
 ### Events
