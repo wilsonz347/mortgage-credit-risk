@@ -230,11 +230,50 @@ def in_sample_sql(id_column: str, seed: int, rate: float) -> str:
     return f"{hashed} / 4294967296.0 < {rate}"
 
 
+def sample_tag(rate: float) -> str:
+    """Name part for files built from a sample, e.g. ``5pct`` for 0.05.
+
+    Parameters
+    ----------
+    rate : float
+        Share of loans in the sample.
+
+    Returns
+    -------
+    str
+        The tag.
+    """
+    return f"{rate * 100:g}pct"
+
+
+def sample_paths(cfg: Config, rate: float) -> tuple[Path, Path]:
+    """Paths of the sampled loans table and loan-months table.
+
+    Parameters
+    ----------
+    cfg : Config
+        Project settings.
+    rate : float
+        Share of loans in the sample.
+
+    Returns
+    -------
+    tuple of Path
+        Loans table (one row per loan) and loan-months table (one row per
+        loan per month, all months).
+    """
+    tag = sample_tag(rate)
+    return (
+        cfg.processed_dir / f"loans_{tag}.parquet",
+        cfg.processed_dir / f"loan_months_{tag}.parquet",
+    )
+
+
 def build_sample(cfg: Config, rate: float) -> tuple[Path, Path]:
     """Sample loans and save their origination and monthly rows as Parquet.
 
     Reads only the vintages in the split. Drops HARP loans if the config says
-    so. Reading the performance files takes several minutes.
+    so. Takes under a minute at a 5% sample.
 
     Parameters
     ----------
@@ -250,9 +289,7 @@ def build_sample(cfg: Config, rate: float) -> tuple[Path, Path]:
         table (one row per loan per month).
     """
     vintages = cfg.split.vintages
-    tag = f"{rate * 100:g}pct"
-    loans_path = cfg.processed_dir / f"loans_{tag}.parquet"
-    months_path = cfg.processed_dir / f"loan_months_{tag}.parquet"
+    loans_path, months_path = sample_paths(cfg, rate)
     cfg.processed_dir.mkdir(parents=True, exist_ok=True)
 
     keep = in_sample_sql("loan_id", cfg.seed, rate)

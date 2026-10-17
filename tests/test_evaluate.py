@@ -13,7 +13,7 @@ from mortgage_credit_risk.evaluate import (
     paired_bootstrap_auc,
 )
 from mortgage_credit_risk.models import preprocessor
-from tests.test_models import simulated_survival
+from tests.simulate import simulated_survival
 
 
 def test_binary_metrics_on_calibrated_predictions() -> None:

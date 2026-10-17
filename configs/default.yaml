@@ -4,7 +4,7 @@ seed: 42
 data:
   raw_dir: ../data/raw
   fred_dir: ../data/raw/fred
-  interim_dir: ../data/interim
+  interim_dir: ../data/interim  # cache for notebooks/01_data_audit
   processed_dir: ../data/processed
 
 # Split by origination year. Train and validation only use months before the cutoff.
@@ -30,15 +30,15 @@ events:
     credit_loss_zero_balance_codes: ["02", "03", "09"]
     ignore_relief_months: true  # forbearance (F) or disaster relief (Y)
   prepay_zero_balance_codes: ["01"]
-  censor_zero_balance_codes: ["15", "16", "96"]
+  # Any other ending (sold or removed: 15, 16, 96) or still open is censored.
 
 filters:
   drop_harp: true
 
 # Sample whole loans, not rows.
 sample:
-  build_rate: 0.05
-  final_rate: 0.10
+  build_rate: 0.05  # used for all results so far
+  final_rate: 0.10  # pipeline --rate final
 
 models:
   logistic_horizon_months: 12  # default by this loan age, in months

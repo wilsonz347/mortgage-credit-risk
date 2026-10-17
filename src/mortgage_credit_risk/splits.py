@@ -38,6 +38,7 @@ def split_sql(source: str, split: Split) -> str:
     train = int_list(split.train_vintages)
     validation = int_list(split.validation_vintages)
     test = int_list(split.test_vintages)
+    before_test = int_list(split.train_vintages + split.validation_vintages)
     return f"""
         SELECT *,
             CASE
@@ -46,7 +47,6 @@ def split_sql(source: str, split: Split) -> str:
                 ELSE '{TEST}'
             END AS split
         FROM {source}
-        WHERE (vintage IN {train} AND period < {split.cutoff_period})
-            OR (vintage IN {validation} AND period < {split.cutoff_period})
+        WHERE (vintage IN {before_test} AND period < {split.cutoff_period})
             OR vintage IN {test}
     """

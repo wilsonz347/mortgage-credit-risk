@@ -5,11 +5,16 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from mortgage_credit_risk.loss import expected_loss, loan_outcomes, loss_given_default
+from mortgage_credit_risk.loss import (
+    expected_loss,
+    loan_outcomes,
+    loss_given_default,
+    outcome_status,
+)
 
 
 @pytest.fixture
-def months_path(tmp_path: Path) -> str:
+def months_path(tmp_path: Path) -> Path:
     rows = [
         # loan, period, delinquency, zero balance code, actual loss
         ("lost", 201801, "03", None, None),
@@ -33,10 +38,10 @@ def months_path(tmp_path: Path) -> str:
     )
     path = tmp_path / "months.parquet"
     df.to_parquet(path)
-    return str(path)
+    return path
 
 
-def test_loan_outcomes_only_use_months_before_cutoff(months_path: str) -> None:
+def test_loan_outcomes_only_use_months_before_cutoff(months_path: Path) -> None:
     ids = pd.Series(["lost", "cured", "still_late", "later_loss"])
     out = loan_outcomes(months_path, ids, before=201901)
 
@@ -46,7 +51,22 @@ def test_loan_outcomes_only_use_months_before_cutoff(months_path: str) -> None:
     assert out.loc["cured", "last_delinquency"] == "00"
 
 
-def test_lgd_uses_only_known_outcomes(months_path: str) -> None:
+def test_outcome_status_and_all_months(months_path: Path) -> None:
+    ids = pd.Series(["lost", "cured", "still_late", "later_loss"])
+
+    before = outcome_status(loan_outcomes(months_path, ids, before=201901))
+    after = outcome_status(loan_outcomes(months_path, ids))
+
+    assert before.to_dict() == {
+        "cured": "current again",
+        "later_loss": "still late",
+        "lost": "credit loss",
+        "still_late": "still late",
+    }
+    assert after["later_loss"] == "credit loss"
+
+
+def test_lgd_uses_only_known_outcomes(months_path: Path) -> None:
     defaults = pd.DataFrame(
         {
             "loan_id": ["lost", "cured", "still_late", "later_loss"],
