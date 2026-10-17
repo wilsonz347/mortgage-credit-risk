@@ -60,10 +60,6 @@ Training never sees anything after Jan 2019, so the test is like using the model
 
 Details are in the notebooks and in [docs/decisions.md](docs/decisions.md). Limits are in the [model card](docs/model_card.md).
 
-## Changes from the original plan
-
-The original plan also included a CatBoost model, a stress test and drift monitoring. They were dropped to keep the project focused: the main errors came from events the data cannot see (hurricanes, COVID, a housing boom), which a more complex model would not fix.
-
 ## Repository
 
 ```
