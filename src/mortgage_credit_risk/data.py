@@ -1,5 +1,6 @@
 """Read the Freddie Mac files, sample loans and save typed Parquet tables."""
 
+import contextlib
 import logging
 import re
 from dataclasses import dataclass
@@ -89,6 +90,23 @@ PERF_COLUMNS = [
     Column("zero_balance_removal_upb", "removal_upb", "DOUBLE"),
     Column("actual_loss", "actual_loss", "DOUBLE"),
 ]
+
+
+def connect() -> duckdb.DuckDBPyConnection:
+    """Open an in-memory DuckDB connection with the progress bar off.
+
+    In Jupyter, DuckDB refuses to change the setting unless ``ipywidgets`` is
+    installed, so a failure there is ignored.
+
+    Returns
+    -------
+    duckdb.DuckDBPyConnection
+        New connection.
+    """
+    con = duckdb.connect()
+    with contextlib.suppress(duckdb.InvalidInputException):
+        con.execute("SET enable_progress_bar = false")
+    return con
 
 
 def read_header(raw_dir: Path, kind: str) -> list[str]:
@@ -241,8 +259,7 @@ def build_sample(cfg: Config, rate: float) -> tuple[Path, Path]:
     if cfg.drop_harp:
         keep += " AND coalesce(harp, 'N') <> 'Y'"
 
-    con = duckdb.connect()
-    con.execute("SET enable_progress_bar = false")
+    con = connect()
     logger.info("Writing %s", loans_path)
     con.execute(f"""
         COPY (
