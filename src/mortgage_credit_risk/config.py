@@ -112,10 +112,8 @@ class Config:
         Event codes.
     drop_harp : bool
         If true, HARP loans are left out.
-    build_rate : float
-        Share of loans to sample while building.
-    final_rate : float
-        Share of loans to sample for final results.
+    sample_rate : float
+        Share of loans to sample.
     logistic_horizon_months : int
         Loan age by which a default counts for the logistic baseline.
     numeric_features : tuple of str
@@ -146,8 +144,7 @@ class Config:
     macro: Macro
     events: Events
     drop_harp: bool
-    build_rate: float
-    final_rate: float
+    sample_rate: float
     logistic_horizon_months: int
     numeric_features: tuple[str, ...]
     categorical_features: tuple[str, ...]
@@ -209,8 +206,7 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
             prepay_codes=tuple(str(c) for c in events["prepay_zero_balance_codes"]),
         ),
         drop_harp=bool(raw["filters"]["drop_harp"]),
-        build_rate=float(raw["sample"]["build_rate"]),
-        final_rate=float(raw["sample"]["final_rate"]),
+        sample_rate=float(raw["sample"]["rate"]),
         logistic_horizon_months=int(raw["models"]["logistic_horizon_months"]),
         numeric_features=tuple(raw["models"]["numeric_features"]),
         categorical_features=tuple(raw["models"]["categorical_features"]),
@@ -229,7 +225,6 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
     ]
     if sum(len(g) for g in groups) != len(cfg.split.vintages):
         raise ValueError("A vintage is in more than one split")
-    for rate in (cfg.build_rate, cfg.final_rate):
-        if not 0 < rate <= 1:
-            raise ValueError(f"Sample rate must be in (0, 1], got {rate}")
+    if not 0 < cfg.sample_rate <= 1:
+        raise ValueError(f"Sample rate must be in (0, 1], got {cfg.sample_rate}")
     return cfg

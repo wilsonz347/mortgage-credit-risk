@@ -46,7 +46,7 @@ A Cox proportional hazards model that predicts each mortgage's monthly risk of d
 
 ## Fairness
 
-No protected characteristics (race, sex, age) are in the data or the model. State and occupancy are used and can be related to protected characteristics. The model has not been tested for fair lending.
+No protected characteristics (race, sex, age) are in the data or the model. Occupancy is used and can be related to protected characteristics. State is not a model input. The model has not been tested for fair lending.
 
 ## Version
 

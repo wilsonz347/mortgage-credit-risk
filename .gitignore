@@ -24,9 +24,6 @@ htmlcov/
 .env
 .envrc
 
-# Experiment tracking
-mlruns/
-
 # OS / editors
 .DS_Store
 .idea/

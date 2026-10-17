@@ -37,8 +37,7 @@ filters:
 
 # Sample whole loans, not rows.
 sample:
-  build_rate: 0.05  # used for all results so far
-  final_rate: 0.10  # pipeline --rate final
+  rate: 0.05  # share of loans used for all results
 
 models:
   logistic_horizon_months: 12  # default by this loan age, in months
