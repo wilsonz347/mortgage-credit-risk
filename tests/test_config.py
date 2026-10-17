@@ -55,7 +55,6 @@ def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") 
         "    credit_loss_zero_balance_codes: ['02']\n"
         "    ignore_relief_months: true\n"
         "  prepay_zero_balance_codes: ['01']\n"
-        "  censor_zero_balance_codes: ['15']\n"
         "filters: {drop_harp: true}\n"
         f"sample: {{build_rate: {rate}, final_rate: 0.2}}\n"
         "models:\n"

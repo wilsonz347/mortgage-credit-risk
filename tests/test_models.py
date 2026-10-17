@@ -15,6 +15,7 @@ from mortgage_credit_risk.models import (
     horizon_label,
     preprocessor,
 )
+from tests.simulate import simulated_survival
 
 
 def test_horizon_label_keeps_known_loans_and_sets_target() -> None:
@@ -87,27 +88,6 @@ def test_fit_logistic_learns_that_low_scores_default_more() -> None:
     assert coef.loc["credit_score", "coef"] < -1
     assert abs(coef.loc["dti", "coef"]) < 0.3
     assert len(coef) == 1 + 4 + 2 + 2
-
-
-def simulated_survival(n: int, seed: int) -> pd.DataFrame:
-    """Loans whose monthly default risk halves per standard deviation of score."""
-    rng = np.random.default_rng(seed)
-    loans = pd.DataFrame(
-        {
-            "credit_score": rng.normal(740, 40, n),
-            "ltv": rng.normal(75, 15, n),
-            "dti": rng.normal(35, 8, n),
-            "orig_rate": rng.normal(4, 0.5, n),
-            "purpose": rng.choice(["C", "N", "P"], n),
-            "occupancy": rng.choice(["I", "P", "S"], n),
-        }
-    )
-    hazard = 0.01 * np.exp(np.log(0.5) * (loans["credit_score"] - 740) / 40)
-    default_age = rng.geometric(hazard)
-    censor_age = rng.integers(1, 48, n)
-    loans["last_age"] = np.minimum(default_age, censor_age)
-    loans["event"] = np.where(default_age <= censor_age, DEFAULT, NO_EVENT)
-    return loans
 
 
 def test_fit_cox_recovers_hazard_ratio() -> None:

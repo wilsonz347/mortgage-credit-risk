@@ -1,24 +1,32 @@
 """Loss given default and expected loss."""
 
+from pathlib import Path
+
 import pandas as pd
 
 from mortgage_credit_risk.data import connect
 
 CURRENT = "00"
+CREDIT_LOSS_CODES = ("02", "03", "09")
+PAID_OFF_CODE = "01"
+STILL_LATE = "still late"
 
 
-def loan_outcomes(months_path: str, loan_ids: pd.Series, before: int) -> pd.DataFrame:
-    """Summarize each loan's losses and status using months before a date.
+def loan_outcomes(
+    months_path: Path, loan_ids: pd.Series, before: int | None = None
+) -> pd.DataFrame:
+    """Summarize each loan's losses and status.
 
     Parameters
     ----------
-    months_path : str
+    months_path : Path
         Loan-month Parquet file from ``build_sample`` (all months, with
         ``actual_loss``).
     loan_ids : pd.Series
         Loans to summarize.
-    before : int
-        Only months before this period (YYYYMM) are used.
+    before : int, optional
+        Only months before this period (YYYYMM) are used. None uses all
+        months.
 
     Returns
     -------
@@ -35,11 +43,34 @@ def loan_outcomes(months_path: str, loan_ids: pd.Series, before: int) -> pd.Data
             max(m.zero_balance_code) AS zero_balance_code,
             arg_max(m.delinquency, m.period) AS last_delinquency
         FROM '{months_path}' m JOIN ids USING (loan_id)
-        WHERE m.period < {before}
+        WHERE {"true" if before is None else f"m.period < {before}"}
         GROUP BY 1
     """).df()
     con.close()
     return out.set_index("loan_id")
+
+
+def outcome_status(outcomes: pd.DataFrame) -> pd.Series:
+    """Describe where each loan stands, in words.
+
+    Parameters
+    ----------
+    outcomes : pd.DataFrame
+        Output of ``loan_outcomes``.
+
+    Returns
+    -------
+    pd.Series
+        One of "credit loss", "paid off", "sold or removed", "current again"
+        or "still late".
+    """
+    code = outcomes["zero_balance_code"]
+    status = pd.Series(STILL_LATE, index=outcomes.index)
+    status[outcomes["last_delinquency"] == CURRENT] = "current again"
+    status[code.notna()] = "sold or removed"
+    status[code == PAID_OFF_CODE] = "paid off"
+    status[code.isin(CREDIT_LOSS_CODES)] = "credit loss"
+    return status
 
 
 def loss_given_default(defaults: pd.DataFrame, outcomes: pd.DataFrame) -> float:
@@ -62,10 +93,7 @@ def loss_given_default(defaults: pd.DataFrame, outcomes: pd.DataFrame) -> float:
         Dollars lost divided by original balance.
     """
     joined = defaults.set_index("loan_id").join(outcomes, how="inner")
-    known = joined["zero_balance_code"].notna() | (
-        joined["last_delinquency"] == CURRENT
-    )
-    resolved = joined[known]
+    resolved = joined[outcome_status(joined) != STILL_LATE]
     return float(resolved["loss"].sum() / resolved["orig_upb"].sum())
 
 

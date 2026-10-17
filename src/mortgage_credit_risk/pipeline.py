@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 
 from mortgage_credit_risk.config import DEFAULT_CONFIG, Config, load_config
-from mortgage_credit_risk.data import build_sample, connect
+from mortgage_credit_risk.data import build_sample, connect, sample_paths, sample_tag
 from mortgage_credit_risk.events import label_sql
 from mortgage_credit_risk.macro import load_series, monthly_mean
 from mortgage_credit_risk.splits import TEST, split_sql
@@ -95,9 +95,8 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
     ValueError
         If a test row falls before the cutoff.
     """
-    tag = f"{rate * 100:g}pct"
-    loans_path = cfg.processed_dir / f"loans_{tag}.parquet"
-    months_path = cfg.processed_dir / f"loan_months_{tag}.parquet"
+    tag = sample_tag(rate)
+    loans_path, months_path = sample_paths(cfg, rate)
     if not (loans_path.exists() and months_path.exists()):
         loans_path, months_path = build_sample(cfg, rate)
 

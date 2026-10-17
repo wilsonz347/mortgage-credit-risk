@@ -56,9 +56,7 @@ class Events:
     ignore_relief_months : bool
         If true, late months in forbearance or disaster relief do not count.
     prepay_codes : tuple of str
-        Zero balance codes that mean prepayment.
-    censor_codes : tuple of str
-        Zero balance codes that end observation without an event.
+        Zero balance codes that mean prepayment. Any other ending is censored.
     """
 
     min_delinquency_code: int
@@ -66,7 +64,6 @@ class Events:
     credit_loss_codes: tuple[str, ...]
     ignore_relief_months: bool
     prepay_codes: tuple[str, ...]
-    censor_codes: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -210,7 +207,6 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
             ),
             ignore_relief_months=bool(events["default"]["ignore_relief_months"]),
             prepay_codes=tuple(str(c) for c in events["prepay_zero_balance_codes"]),
-            censor_codes=tuple(str(c) for c in events["censor_zero_balance_codes"]),
         ),
         drop_harp=bool(raw["filters"]["drop_harp"]),
         build_rate=float(raw["sample"]["build_rate"]),

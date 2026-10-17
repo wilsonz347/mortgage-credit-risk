@@ -84,7 +84,7 @@ notebooks/
     04_rate_spread_and_gap  the validation gap (hurricanes)
     05_expected_loss        dollars
 docs/                       decisions, model card
-tests/                      60 tests, including leakage checks on hand-built loans
+tests/                      tests, including leakage checks on hand-built loans
 ```
 
 ## How to run
