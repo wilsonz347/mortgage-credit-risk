@@ -4,6 +4,44 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-16: Baseline models (M3)
+
+**Decision:** Keep the model set small. Start with two baselines, then decide whether to add more.
+
+| Model | Table | Answers |
+|---|---|---|
+| 12-month logistic regression | `model_loans` | Will the loan default within its first 12 months? |
+| Cox proportional hazards | `model_loans` | How does each feature change default risk over time? |
+
+**Why:**
+
+- Simple models first, so any later model has a clear bar to beat.
+- More models (CatBoost hazard, competing-risk models) are added only if the baselines show a reason to.
+
+**12-month logistic:**
+
+- Uses loans watched for 12 months or that ended sooner. Loans censored earlier are left out.
+- 12 months is the industry standard (Basel, IFRS 9) and fits the data. At 24 months, only validation loans that already had an event are usable.
+- At 5% this leaves 152 training, 131 validation and 184 test defaults.
+
+**Cox:**
+
+- Duration is `months`, event is default.
+- Prepayment is treated as censoring. This answers "risk of default while the loan is still open", not the overall chance of default.
+
+**Starting features:** credit score, LTV, DTI, interest rate, loan purpose, occupancy. Add more once these work.
+
+**Library check (Oct 16, 2026, Python 3.12):**
+
+| Library | Works | Note |
+|---|---|---|
+| scikit-survival 0.28 | Yes | Works with pandas 3.0.6 |
+| lifelines 0.30 | Yes | Needs pandas below 3, so it would downgrade pandas to 2.3.3 |
+
+Library choice for Cox: to be decided.
+
+---
+
 ## 2026-10-16: Modeling tables
 
 **Decision:** Build two tables from each sample, both in `data/processed/`.
