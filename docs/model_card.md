@@ -50,4 +50,4 @@ No protected characteristics (race, sex, age) are in the data or the model. Stat
 
 ## Version
 
-v0.1.0, Oct 2026. Details of every choice are in [decisions.md](decisions.md).
+v0.1.1, Oct 2026. Details of every choice are in [decisions.md](decisions.md).
