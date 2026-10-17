@@ -4,6 +4,37 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-17: M3 results and next step
+
+**Results** (5% sample, see `notebooks/03_baselines.ipynb`):
+
+| | 12-month logistic | Cox |
+|---|---|---|
+| Training defaults used | 169 | 884 |
+| Validation AUC (12-month) | 0.800 | 0.812 |
+| Validation C-index | 0.805 | 0.815 |
+| Validation predicted / observed | 0.67 | 0.71 |
+| Test AUC (12-month) | 0.666 | 0.675 |
+| Test C-index | 0.70 | 0.72 |
+| Test predicted / observed | 0.67 | 0.72 |
+
+**Decision:** Keep Cox as the main baseline.
+
+- It uses all defaults, ranks slightly better (paired bootstrap: wins in 99.8% of resamples), and gives a default curve over time.
+- Proportional hazards mostly holds. The owner vs investor ratio may grow with loan age (1.19 to 2.16); watch it.
+
+**Next:** Add economic features from FRED, starting with the rate spread at origination.
+
+- Both models under-predict validation and test by about 30%, and ranking drops on test (COVID).
+- Two different models failing the same way points to missing information about the period, not the model type.
+
+**Not now:**
+
+- **CatBoost.** It learns from the same features and period, so it cannot fix the gap.
+- **Recalibration.** It would hide the gap instead of explaining it. Revisit before expected loss (M6), since a 30% under-prediction means reserves 30% too low.
+
+---
+
 ## 2026-10-16: Baseline models (M3)
 
 **Decision:** Keep the model set small. Start with two baselines, then decide whether to add more.

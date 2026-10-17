@@ -45,3 +45,5 @@ models:
 
 evaluation:
   n_bins: 10  # risk bands for calibration tables
+  ph_split_age: 18  # loan age that splits the proportional hazards check
+  n_bootstrap: 1000  # resamples for bootstrap intervals
