@@ -136,6 +136,8 @@ class Config:
         hazards check.
     n_bootstrap : int
         Number of resamples for bootstrap intervals.
+    loss_horizon_months : int
+        Loan age up to which expected loss is measured.
     """
 
     seed: int
@@ -155,6 +157,7 @@ class Config:
     n_bins: int = 10
     ph_split_age: int = 18
     n_bootstrap: int = 1000
+    loss_horizon_months: int = 36
     logistic_params: dict[str, Any] = field(default_factory=dict)
     cox_params: dict[str, Any] = field(default_factory=dict)
 
@@ -219,6 +222,7 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
         n_bins=int(raw["evaluation"]["n_bins"]),
         ph_split_age=int(raw["evaluation"]["ph_split_age"]),
         n_bootstrap=int(raw["evaluation"]["n_bootstrap"]),
+        loss_horizon_months=int(raw["loss"]["horizon_months"]),
         cox_params=dict(raw["models"].get("cox") or {}),
     )
 

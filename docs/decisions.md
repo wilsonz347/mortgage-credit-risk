@@ -4,6 +4,38 @@ Short, dated entries, newest first. Record what was decided and why.
 
 ---
 
+## 2026-10-17: Expected loss
+
+**Decision:** Keep it simple.
+
+| Piece | Choice |
+|---|---|
+| Probability of default (PD) | Cox, chance of default within 36 months |
+| Loss given default (LGD) | One rate for all loans: dollars lost / original balance, from training defaults with a known outcome by Jan 2019 |
+| Exposure (EAD) | Original balance |
+
+**Why 36 months:** most defaults happen in years 2 and 3, and training loans are only seen up to about 4 years old.
+
+**Result on test** (5% sample, see `notebooks/05_expected_loss.ipynb`):
+
+| | Predicted | Actual |
+|---|---|---|
+| Defaults within 36 months | 957 | 898 |
+| Loss given default | 0.97% | 0.42% |
+| Loss | $2.25 million | $0.95 million |
+
+- Default counts are close (ratio 1.07).
+- Losses are over-predicted by more than 2 times, all from the loss rate.
+- House prices rose 17% in 2021 and 15% in 2022, so defaulted homes sold with little loss.
+
+**Known limits:**
+
+- The loss rate leaves out training defaults still late in Jan 2019 (342 of 884), so it is probably too low.
+- 76 test defaults were still late in Mar 2026, so some test losses are not in yet.
+- One loss rate cannot react to house prices. That is the main reason for the gap.
+
+---
+
 ## 2026-10-17: Rate spread and the validation gap
 
 **Built:** FRED download and cache (`macro.py`). Two new loan columns:

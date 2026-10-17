@@ -23,6 +23,7 @@ def test_default_config_loads() -> None:
     assert cfg.n_bins == 10
     assert cfg.ph_split_age == 18
     assert cfg.n_bootstrap == 1000
+    assert cfg.loss_horizon_months == 36
     assert cfg.macro.rate_series_long == "MORTGAGE30US"
     assert cfg.fred_dir == cfg.raw_dir / "fred"
 
@@ -62,6 +63,7 @@ def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") 
         "  numeric_features: [ltv]\n"
         "  categorical_features: [purpose]\n"
         "evaluation: {n_bins: 5, ph_split_age: 12, n_bootstrap: 10}\n"
+        "loss: {horizon_months: 24}\n"
     )
     return path
 
