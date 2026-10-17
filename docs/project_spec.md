@@ -115,10 +115,9 @@ mortgage-credit-risk/
 
 ## 7. Working agreement with Claude
 
-- Claude writes the data side: loading, cleaning, event definitions, splits, modeling tables, data analysis. (Changed Oct 16, 2026.)
-- I write the modeling side: hazard setup, models, metrics, evaluation.
-- Claude may generate boilerplate, plotting, test scaffolds, and CI, when I ask.
-- Before accepting generated code, I ask for a line-by-line explanation.
+- I own the design decisions: event definitions, split, sampling, model choice, evaluation.
+- Claude lays out options and trade-offs, then implements to my decisions in small, explained steps.
+- I review every change and get a step-by-step explanation before accepting it.
 - Write down what I expect each result to look like before running it.
 - Hand-check at least one calculation per module against a tiny example.
 

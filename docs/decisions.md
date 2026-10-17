@@ -20,9 +20,11 @@ Short, dated entries, newest first. Record what was decided and why.
 
 **12-month logistic:**
 
-- Uses loans watched for 12 months or that ended sooner. Loans censored earlier are left out.
+- Target: default by loan age 12 (`last_age` 12 or less).
+- Uses loans watched to age 12 or that defaulted or prepaid sooner. Loans censored earlier are left out.
 - 12 months is the industry standard (Basel, IFRS 9) and fits the data. At 24 months, only validation loans that already had an event are usable.
-- At 5% this leaves 152 training, 131 validation and 184 test defaults.
+- At 5% this leaves 169 training, 147 validation and 199 test defaults.
+- Solver: `newton-cholesky`. The default `lbfgs` stopped after 16 iterations with defaults this rare, and gave wrong coefficients (second homes 0.29 instead of 0.98). Checked against statsmodels.
 
 **Cox:**
 
@@ -38,7 +40,7 @@ Short, dated entries, newest first. Record what was decided and why.
 | scikit-survival 0.28 | Yes | Works with pandas 3.0.6 |
 | lifelines 0.30 | Yes | Needs pandas below 3, so it would downgrade pandas to 2.3.3 |
 
-Library choice for Cox: to be decided.
+**Library:** scikit-survival, so pandas stays at version 3.
 
 ---
 
@@ -62,8 +64,6 @@ Library choice for Cox: to be decided.
 
 - Origination fields only for now (`FEATURES` in `pipeline.py`).
 - Time-varying features (market rate, ELTV) are left for later. They must use only data known at each month.
-
-**Who writes what:** From Oct 16, 2026, Claude writes the data side and the user writes the modeling side. See `CLAUDE.md`.
 
 ---
 

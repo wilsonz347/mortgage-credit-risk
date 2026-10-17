@@ -14,11 +14,12 @@ Status: M1 (data audit) done. Next: M2 loader, sampling and splits.
 - Never push to `main`. One branch per task, then open a PR.
 - Log design choices as short dated entries in `docs/decisions.md`.
 
-## Who writes what
-- Claude writes the data side: loading, cleaning, event definitions, splits, modeling tables, data analysis notebooks.
-- I write the modeling side: hazard setup, models, metrics, evaluation. Do not write or edit modeling code unless I ask.
-- Welcome without asking: reviewing my diffs, suggesting tests, fixing CI, docs.
-- Explain briefly. Do not paste code unless I ask for it.
+## How we work
+- I own the design decisions: event definitions, split, sampling, model choice, evaluation. Claude lays out options and trade-offs, and each decision is logged in `docs/decisions.md`.
+- Claude implements to those decisions in small steps and explains each one. I review every change, and I must be able to explain it before it is merged.
+- For modeling, go one step at a time and question me on each step before moving on.
+- Welcome without asking: reviewing diffs, suggesting tests, fixing CI, docs.
+- Explain briefly. Show code only when walking through it or when I ask.
 
 ## Code standards
 - Type hints on all package code. NumPy-style docstrings.
