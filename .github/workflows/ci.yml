@@ -1,16 +1,18 @@
-# .github/workflows/ci.yml
-name: CI
+# Runs the code checks and tests on every pull request and on main.
+name: Checks
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
-  quality:
+  checks:
+    name: Lint, type check and test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Get the code
         uses: actions/checkout@v4
 
       - name: Install uv
@@ -18,20 +20,23 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
-        run: uv python install 3.12
+      # Uses the version in .python-version.
+      - name: Install Python
+        run: uv python install
 
-      - name: Install dependencies
+      # Exact versions from uv.lock, including dev tools.
+      - name: Install packages
         run: uv sync --locked --all-groups
 
-      - name: Lint
+      - name: Lint (ruff)
         run: uv run ruff check .
 
-      - name: Check formatting
+      - name: Check formatting (ruff)
         run: uv run ruff format --check .
 
-      - name: Type check
+      - name: Check types (mypy)
         run: uv run mypy
 
-      - name: Test
+      # Tests use small made-up loans, so no real data is needed.
+      - name: Run tests (pytest)
         run: uv run pytest
