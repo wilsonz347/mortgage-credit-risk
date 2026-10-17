@@ -3,6 +3,7 @@ seed: 42
 
 data:
   raw_dir: ../data/raw
+  fred_dir: ../data/raw/fred
   interim_dir: ../data/interim
   processed_dir: ../data/processed
 
@@ -12,6 +13,14 @@ split:
   validation_vintages: [2017]
   test_vintages: [2019]
   cutoff_period: 201901  # YYYYMM, first month of the test period
+
+# Economic data from FRED (fred.stlouisfed.org). The API key is read from
+# FRED_API_KEY in the environment or in .env at the project root.
+macro:
+  rate_series_long: MORTGAGE30US  # weekly 30-year fixed mortgage rate
+  rate_series_short: MORTGAGE15US  # weekly 15-year fixed mortgage rate
+  short_term_max_months: 180  # loans this long or shorter use the 15-year rate
+  origination_lag_months: 2  # origination month = first payment month minus this
 
 # Event definitions. See docs/decisions.md and notebooks/01_data_audit.ipynb (rule B).
 events:

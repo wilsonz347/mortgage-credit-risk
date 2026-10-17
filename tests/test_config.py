@@ -23,6 +23,8 @@ def test_default_config_loads() -> None:
     assert cfg.n_bins == 10
     assert cfg.ph_split_age == 18
     assert cfg.n_bootstrap == 1000
+    assert cfg.macro.rate_series_long == "MORTGAGE30US"
+    assert cfg.fred_dir == cfg.raw_dir / "fred"
 
 
 def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") -> Path:
@@ -30,7 +32,16 @@ def write_config(tmp_path: Path, validation: str = "[2017]", rate: str = "0.1") 
     path.parent.mkdir()
     path.write_text(
         "seed: 1\n"
-        "data: {raw_dir: ../data/raw, interim_dir: ../data/i, processed_dir: ../p}\n"
+        "data:\n"
+        "  raw_dir: ../data/raw\n"
+        "  fred_dir: ../data/raw/fred\n"
+        "  interim_dir: ../data/i\n"
+        "  processed_dir: ../p\n"
+        "macro:\n"
+        "  rate_series_long: L\n"
+        "  rate_series_short: S\n"
+        "  short_term_max_months: 180\n"
+        "  origination_lag_months: 2\n"
         "split:\n"
         "  train_vintages: [2015, 2016]\n"
         f"  validation_vintages: {validation}\n"

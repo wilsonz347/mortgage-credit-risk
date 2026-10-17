@@ -8,9 +8,12 @@ import argparse
 import logging
 from pathlib import Path
 
+import pandas as pd
+
 from mortgage_credit_risk.config import DEFAULT_CONFIG, Config, load_config
 from mortgage_credit_risk.data import build_sample, connect
 from mortgage_credit_risk.events import label_sql
+from mortgage_credit_risk.macro import load_series, monthly_mean
 from mortgage_credit_risk.splits import TEST, split_sql
 
 logger = logging.getLogger(__name__)
@@ -35,7 +38,28 @@ FEATURES = [
     "state",
     "super_conforming",
     "program",
+    "market_rate",
+    "rate_spread",
 ]
+
+
+def market_rates(cfg: Config) -> pd.DataFrame:
+    """Monthly average market mortgage rates for long and short loans.
+
+    Parameters
+    ----------
+    cfg : Config
+        Project settings with the FRED series IDs and cache folder.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns ``period`` (YYYYMM), ``long_rate`` and ``short_rate``.
+    """
+    long_rate = monthly_mean(load_series(cfg.macro.rate_series_long, cfg.fred_dir))
+    short_rate = monthly_mean(load_series(cfg.macro.rate_series_short, cfg.fred_dir))
+    rates = pd.concat({"long_rate": long_rate, "short_rate": short_rate}, axis=1)
+    return rates.reset_index()
 
 
 def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
@@ -82,10 +106,29 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
     features = ", ".join(f"l.{f}" for f in FEATURES)
 
     con = connect()
+    con.register("rates", market_rates(cfg))
+    lag = cfg.macro.origination_lag_months
+    con.execute(f"""
+        CREATE VIEW loans AS
+        WITH dated AS (
+            SELECT *,
+                CAST(strftime(
+                    strptime(CAST(first_payment_period AS VARCHAR), '%Y%m')
+                        - INTERVAL {lag} MONTH,
+                    '%Y%m'
+                ) AS INTEGER) AS orig_period
+            FROM '{loans_path}'
+        )
+        SELECT d.*,
+            CASE WHEN d.orig_term <= {cfg.macro.short_term_max_months}
+                THEN r.short_rate ELSE r.long_rate END AS market_rate,
+            d.orig_rate - market_rate AS rate_spread
+        FROM dated d LEFT JOIN rates r ON r.period = d.orig_period
+    """)
     con.execute(f"""
         CREATE VIEW months AS
         SELECT m.*, l.vintage
-        FROM '{months_path}' m JOIN '{loans_path}' l USING (loan_id)
+        FROM '{months_path}' m JOIN loans l USING (loan_id)
     """)
     con.execute(f"""
         CREATE VIEW labeled AS
@@ -104,7 +147,7 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
         COPY (
             SELECT m.split, m.loan_id, m.vintage, m.period, m.loan_age, m.event,
                 {features}
-            FROM labeled m JOIN '{loans_path}' l USING (loan_id)
+            FROM labeled m JOIN loans l USING (loan_id)
             ORDER BY m.loan_id, m.period
         ) TO '{hazard_path}' (FORMAT parquet)
     """)
@@ -124,7 +167,7 @@ def build_model_tables(cfg: Config, rate: float) -> tuple[Path, Path]:
                     max(event) AS event,
                     max(period) FILTER (WHERE event > 0) AS event_period
                 FROM labeled GROUP BY loan_id
-            ) m JOIN '{loans_path}' l USING (loan_id)
+            ) m JOIN loans l USING (loan_id)
             ORDER BY m.loan_id
         ) TO '{loan_table_path}' (FORMAT parquet)
     """)
